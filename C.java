@@ -1,5 +1,7 @@
 package net.cleverleo.common;
+
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -189,7 +191,7 @@ public class C {
 	}
 
 	@SuppressWarnings("resource")
-	public int downloadFile(String imgUrl, String path) throws IOException {
+	public String downloadFile(String imgUrl, String path) throws IOException {
 		RandomAccessFile file = null;
 		HttpURLConnection conn = null;
 
@@ -204,7 +206,11 @@ public class C {
 		conn.setRequestProperty("Cookie", this.getCookieText());
 
 		int filesize = conn.getContentLength();
+		if ((new File(path)).isDirectory()) {
+			String[] oFilename_arr = conn.getURL().getPath().split("/", 0);
 
+			path += "/" + oFilename_arr[oFilename_arr.length - 1];
+		}
 		file = new RandomAccessFile(path, "rw");
 		file.setLength(filesize);// 获取文件大小
 
@@ -218,10 +224,10 @@ public class C {
 			hasdown += hasRead;
 		}
 		if (filesize == hasdown) {
-			return filesize;
+			return path;
 		}
 
-		return 0;
+		return null;
 	}
 
 	public String postFile(Part[] part) {
@@ -234,7 +240,8 @@ public class C {
 
 			// 设置Http Post数据，这里是上传文件
 			method.setRequestHeader("Cookie", this.getCookieText());
-			MultipartRequestEntity data = new MultipartRequestEntity(part,method.getParams());
+			MultipartRequestEntity data = new MultipartRequestEntity(part,
+					method.getParams());
 			method.setRequestEntity(data);
 			try {
 				client.executeMethod(method); // 这一步就把文件上传了
